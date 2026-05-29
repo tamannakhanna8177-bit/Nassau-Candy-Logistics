@@ -423,3 +423,30 @@ st.pyplot(fig1)
 st.subheader("Forecast Components")
 fig2 = m.plot_components(forecast)
 st.pyplot(fig2)
+
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.subheader("📈 Historical Trend Analysis")
+
+# 1. Trend Analysis ke liye Data Grouping
+# Hum 'Order Date' ke basis par Sales aur Profit ka trend dekhenge
+trend_data = df_f.groupby('Order Date')[['Sales', 'Gross Profit']].sum().reset_index()
+
+# 2. Plotly Line Chart (Interactive)
+fig = px.line(trend_data, x='Order Date', y=['Sales', 'Gross Profit'], 
+              title="Sales and Gross Profit Trend over Time",
+              labels={'value': 'Amount ($)', 'Order Date': 'Date'})
+
+# Chart ko customize karna
+fig.update_layout(hovermode="x unified")
+st.plotly_chart(fig, use_container_width=True)
+
+# 3. Monthly Trend (Agar daily data bahut zyada hai)
+st.subheader("Monthly Sales Trend")
+df_f['Order Date'] = pd.to_datetime(df_f['Order Date'])
+monthly_trend = df_f.set_index('Order Date').resample('M')[['Sales']].sum().reset_index()
+
+fig_m = px.area(monthly_trend, x='Order Date', y='Sales', title="Monthly Sales Volume")
+st.plotly_chart(fig_m, use_container_width=True)
