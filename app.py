@@ -41,3 +41,16 @@ st.plotly_chart(fig1, use_container_width=True)
 fig2 = px.bar(df.groupby('State/Province')['Gross Profit'].sum().reset_index(), 
              x='State/Province', y='Gross Profit', title="Total Profit by State", color='Gross Profit')
 st.plotly_chart(fig2, use_container_width=True)
+
+# Bottleneck Detection Section
+st.subheader("⚠️ Bottleneck Detection (High Lead Time States)")
+
+# Top 5 states jahan sabse zyada deri ho rahi hai
+bottlenecks = df.groupby('State/Province')['Lead Time'].mean().sort_values(ascending=False).head(5)
+st.bar_chart(bottlenecks)
+
+# Efficiency Benchmarking
+st.subheader("✅ Shipping Efficiency Benchmark")
+df['Status'] = df['Lead Time'].apply(lambda x: 'On-Time' if x <= 4 else 'Delayed')
+status_counts = df['Status'].value_counts()
+st.pie_chart(status_counts)
