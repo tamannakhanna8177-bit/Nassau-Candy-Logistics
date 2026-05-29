@@ -211,3 +211,13 @@ st.sidebar.subheader("⚙️ Advanced Settings")
 st.sidebar.write(
     "You can add more filters here like Date Range, Product Category, etc."
 )
+
+# Threshold Alert Logic
+st.subheader("🔔 Smart Alerts: Performance Monitor")
+
+avg_lead_time = df_filtered['Lead Time'].mean()
+
+if avg_lead_time > 1300: # Aap apni threshold value yahan set karein
+    st.error(f"⚠️ ALERT: High Lead Time detected ({avg_lead_time:.1f} days)! Check North region routes.")
+else:
+    st.success("✅ Logistics performance is within acceptable thresholds.")
