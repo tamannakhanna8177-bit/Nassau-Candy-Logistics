@@ -63,3 +63,26 @@ fig_route = px.scatter(route_data, x='Lead Time', y='Gross Profit',
                        hover_name='State/Province', 
                        title="Route Efficiency: Profit vs Lead Time (Size = Order Volume)")
 st.plotly_chart(fig_route, use_container_width=True)
+
+# 1. Overview Module (KPIs)
+st.subheader("📊 Executive Overview")
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+kpi1.metric("Total Sales", f"${df_filtered['Sales'].sum():,.0f}")
+kpi2.metric("Avg Lead Time", f"{df_filtered['Lead Time'].mean():.1f} days")
+kpi3.metric("Total Profit", f"${df_filtered['Gross Profit'].sum():,.0f}")
+kpi4.metric("Efficiency", f"{(df_filtered['Status']=='On-Time').mean()*100:.1f}%")
+
+# 2. Geo Visuals
+st.subheader("🗺️ Geographic Performance")
+fig_map = px.choropleth(df_filtered, locations='State/Province', locationmode="USA-states", 
+                       color='Gross Profit', scope="usa", title="Profit Heatmap by State")
+st.plotly_chart(fig_map, use_container_width=True)
+
+# 3. Comparison Tools
+st.subheader("⚖️ Comparison Tool: Ship Mode Performance")
+mode_comp = df_filtered.groupby('Ship Mode')[['Lead Time', 'Gross Profit']].mean()
+st.table(mode_comp)
+
+# 4. User Controls (Already in Sidebar)
+st.sidebar.subheader("Advanced Settings")
+# Yahan aap naye controls (jaise Date Range) add kar sakti hain
