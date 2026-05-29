@@ -261,13 +261,24 @@ fig_geo = px.scatter(
 
 st.plotly_chart(fig_geo, width='stretch')
 
-st.subheader("💡 Cost Optimization Recommendations")
+# --- CATEGORICAL DEEP DIVE: PRODUCT SPECIFIC EFFICIENCY ---
+st.subheader("📦 Product Category Deep Dive")
 
-# Logic: Kaunsa shipping mode sabse sasta aur efficient hai
-opt_df = df_f.groupby('Ship Mode')[['Gross Profit', 'Lead Time']].mean()
-best_mode = opt_df[opt_df['Gross Profit'] == opt_df['Gross Profit'].max()].index[0]
+# Product Category Filter
+selected_category = st.selectbox("Select Product Category", options=df_f['Category'].unique())
+df_cat = df_f[df_f['Category'] == selected_category]
 
-st.success(f"✅ Recommendation: Based on current data, **{best_mode}** is your most cost-effective Shipping Mode.")
+# Performance Metrics for the Category
+col_c1, col_c2 = st.columns(2)
+with col_c1:
+    st.write(f"**Efficiency Profile: {selected_category}**")
+    # Category ka top 5 products
+    top_products = df_cat.groupby('Product Name')['Gross Profit'].sum().sort_values(ascending=False).head(5)
+    st.bar_chart(top_products)
 
-# Analysis: Jo modes mehange hain unhe highlight karein
-st.warning("⚠️ Optimization Tip: Consider shifting 'Standard Class' orders to 'Second Class' for routes where lead time difference is less than 2 days.")
+with col_c2:
+    st.write("**Profitability Analysis**")
+    # Category ka avg lead time
+    avg_lt = df_cat['Lead Time'].mean()
+    st.metric(f"Avg Lead Time for {selected_category}", f"{avg_lt:.1f} days")
+    st.info("💡 Tip: If Lead Time is high for a high-profit product, prioritize its inventory placement in local warehouses.")
