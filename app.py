@@ -370,3 +370,31 @@ import plotly.express as px
 fig = px.scatter(df_f, x='Lead Time', y='Sales', color='Product Name', 
                  title="Product Efficiency: High Sales, Low Lead Time is Target")
 st.plotly_chart(fig, use_container_width=True)
+
+from sklearn.cluster import KMeans
+import plotly.express as px
+
+st.subheader("🤖 K-Means Clustering: Regional Segmentation")
+
+# 1. Clustering ke liye data prepare karein
+# Sirf numeric columns lein jo clustering ke liye zaroori hain
+cluster_data = df_f.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().dropna()
+
+# 2. K-Means Model
+n_clusters = 3
+kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
+cluster_data['Cluster'] = kmeans.fit_predict(cluster_data[['Lead Time', 'Gross Profit']])
+
+# 3. Visualization
+fig = px.scatter(cluster_data, x='Lead Time', y='Gross Profit', 
+                 color='Cluster', 
+                 text=cluster_data.index,
+                 title="Regional Clusters based on Lead Time vs Profit")
+fig.update_traces(textposition='top center')
+st.plotly_chart(fig, use_container_width=True)
+
+# 4. Cluster Description
+st.write("Cluster Interpretation:")
+st.write("Cluster 0: High Profit, Low Lead Time (Efficient)")
+st.write("Cluster 1: Moderate Performance")
+st.write("Cluster 2: High Lead Time, Low Profit (Optimization Required)")
