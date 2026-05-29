@@ -42,5 +42,9 @@ st.write(f"Projected Profit after {discount}% discount: ${88770.66 * (1 - discou
 
 st.sidebar.info("Dashboard v2.0 - Optimized for Logistics")
 
+df_f = df[df['State/Province'].isin(states)] 
 
+
+st.subheader("Route Aggregation & Efficiency")
 route_data = df_f.groupby('State/Province')['Gross Profit'].sum().reset_index()
+st.bar_chart(route_data.set_index('State/Province'))
