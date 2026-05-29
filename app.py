@@ -338,11 +338,8 @@ def load_data():
     df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
     df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
     df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
+    # Column names match ho rahe hain dataset se
     df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
-    df['Gross Profit'] = df['Sales'] - df['Cost']
-    
-    # Yahan columns check karein
-    st.sidebar.write("Available Columns:", df.columns.tolist()) 
     return df.dropna(subset=['Lead Time', 'Gross Profit', 'Order Date'])
 
 df = load_data()
@@ -370,26 +367,25 @@ with c2:
                          x='Lead Time', y='Gross Profit', size='Gross Profit', color='State/Province')
     st.plotly_chart(fig_geo, width='stretch')
 
-# 6. Predictive & Alerts
-st.subheader("🔮 Predictive Analytics & Smart Alerts")
+# 6. Predictive Analytics
+st.subheader("🔮 Predictive Analytics")
 df['Days_Since_Start'] = (df['Order Date'] - df['Order Date'].min()).dt.days
 model = LinearRegression().fit(df[['Days_Since_Start']], df['Lead Time'])
 prediction = model.predict(np.array([[df['Days_Since_Start'].max() + 30]]))
-st.info(f"🚀 Predicted Lead Time: {prediction[0]:.1f} days")
+st.info(f"🚀 Predicted Lead Time for next 30 days: {prediction[0]:.1f} days")
 
-# 7. Financial Simulation
-st.subheader("💰 Financial Impact: What-If Simulation")
-reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
-projected = df_f['Gross Profit'].sum() + (df_f['Cost'].sum() * (reduction / 100))
-st.metric("Projected Profit", f"${projected:,.0f}")
-
-# 8. Product Deep Dive (ERROR FIX)
+# 7. Product Efficiency Deep Dive (FIXED)
 st.subheader("📦 Product Specific Efficiency")
-# Yahan check karein ki column ka naam kya hai (e.g., 'Product Name' ya 'Sub-Category')
-# Agar 'Category' error de, toh 'Product Name' ya kisi aur column ka naam yahan likhein
-col_name = 'Sub-Category' # <<-- Yahan change karein agar error aaye
-if col_name in df.columns:
-    cat = st.selectbox("Select Product", options=df[col_name].unique())
-    st.bar_chart(df[df[col_name] == cat].groupby('Product Name')['Gross Profit'].sum().head(5))
-else:
-    st.error(f"Column '{col_name}' not found. Check sidebar for available columns!")
+# 'Category' ki jagah 'Product Name' use kiya hai
+selected_product = st.selectbox("Select Product to Analyze", options=df_f['Product Name'].unique())
+df_prod = df_f[df_f['Product Name'] == selected_product]
+
+col_c1, col_c2 = st.columns(2)
+with col_c1:
+    st.write(f"**Total Profit for {selected_product}**")
+    st.metric("Profit", f"${df_prod['Gross Profit'].sum():,.0f}")
+with col_c2:
+    st.write(f"**Efficiency Profile**")
+    st.metric("Avg Lead Time", f"{df_prod['Lead Time'].mean():.1f} days")
+
+st.success("✅ Dashboard fully updated with available dataset columns!")
