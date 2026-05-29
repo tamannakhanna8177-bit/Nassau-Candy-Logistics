@@ -221,3 +221,25 @@ if avg_lead_time > 1300: # Aap apni threshold value yahan set karein
     st.error(f"⚠️ ALERT: High Lead Time detected ({avg_lead_time:.1f} days)! Check North region routes.")
 else:
     st.success("✅ Logistics performance is within acceptable thresholds.")
+
+
+import smtplib
+from email.message import EmailMessage
+
+def send_alert(message_body):
+    msg = EmailMessage()
+    msg.set_content(message_body)
+    msg['Subject'] = 'Supply Chain Alert!'
+    msg['From'] = 'your-email@gmail.com'
+    msg['To'] = 'manager@example.com'
+    
+    # Iske liye aapko 'App Password' ki zaroorat padegi
+    # server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    # server.login('your-email@gmail.com', 'your-app-password')
+    # server.send_message(msg)
+    # server.quit()
+    st.warning("Simulated Email Sent: " + message_body)
+
+if avg_lead_time > 1300:
+    if st.button("Send Manager Alert"):
+        send_alert(f"Critical Lead Time: {avg_lead_time:.1f} days")
