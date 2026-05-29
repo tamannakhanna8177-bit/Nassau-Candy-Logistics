@@ -104,3 +104,9 @@ fig_map = px.choropleth(
 )
 
 st.plotly_chart(fig_map, use_container_width=True)
+
+st.subheader("🗺️ Geographic Performance: Profit Heatmap")
+df_map = df_filtered.groupby('State/Province')['Gross Profit'].sum().reset_index()
+fig_map = px.choropleth(df_map, locations='State/Province', locationmode="USA-states", 
+                       color='Gross Profit', scope="usa", 
+                       color_continuous_scale
