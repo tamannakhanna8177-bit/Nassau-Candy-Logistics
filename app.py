@@ -398,3 +398,28 @@ st.write("Cluster Interpretation:")
 st.write("Cluster 0: High Profit, Low Lead Time (Efficient)")
 st.write("Cluster 1: Moderate Performance")
 st.write("Cluster 2: High Lead Time, Low Profit (Optimization Required)")
+
+from prophet import Prophet
+
+st.subheader("📈 Meta Prophet: Advanced Sales Forecasting")
+
+# 1. Data Prep for Prophet (Prophet ko 'ds' aur 'y' columns chahiye)
+df_prophet = df_f.groupby('Order Date')['Sales'].sum().reset_index()
+df_prophet.rename(columns={'Order Date': 'ds', 'Sales': 'y'}, inplace=True)
+
+# 2. Model Training
+m = Prophet(yearly_seasonality=True, daily_seasonality=False)
+m.fit(df_prophet)
+
+# 3. Future Forecasting (Agle 30 dino ke liye)
+future = m.make_future_dataframe(periods=30)
+forecast = m.predict(future)
+
+# 4. Visualization
+fig1 = m.plot(forecast)
+st.pyplot(fig1)
+
+# 5. Trend Components (Seasonality check)
+st.subheader("Forecast Components")
+fig2 = m.plot_components(forecast)
+st.pyplot(fig2)
