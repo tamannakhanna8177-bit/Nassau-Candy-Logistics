@@ -260,3 +260,21 @@ fig_geo = px.scatter(
 )
 
 st.plotly_chart(fig_geo, width='stretch')
+
+# --- FINANCIAL IMPACT SIMULATION (WHAT-IF) ---
+st.subheader("💰 Financial Impact: What-If Simulation")
+
+col_a, col_b = st.columns(2)
+
+with col_a:
+    cost_reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
+    
+with col_b:
+    # Logic: Agar shipping cost 5% kam hui, toh profit kitna badhega?
+    current_profit = df_f['Gross Profit'].sum()
+    projected_profit = current_profit + (df_f['Cost'].sum() * (cost_reduction / 100))
+    
+    st.metric("Current Profit", f"${current_profit:,.0f}")
+    st.metric("Projected Profit", f"${projected_profit:,.0f}", delta=f"{projected_profit - current_profit:,.0f}")
+
+st.info("💡 Insight: A small reduction in shipping costs can significantly boost your bottom-line profit.")
