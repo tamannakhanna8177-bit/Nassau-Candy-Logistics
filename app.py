@@ -3,33 +3,41 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(page_title="Nassau Candy Analysis", layout="wide")
-st.title("🏭 Nassau Candy Logistics Dashboard")
+st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
 
 @st.cache_data
 def load_data():
     df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
-    
-    # Date format ko explicitly define kar rahe hain
     df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
     df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
-    
-    # Lead Time Calculate karna
     df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
     
-    # Sirf sahi data rakhein
-    df = df.dropna(subset=['Lead Time'])
+    # 1. Feature Engineering: Gross Profit Calculate karna
+    # Note: Agar aapke CSV mein Sales aur Cost ke columns alag hain, toh naam sahi karein
+    df['Gross Profit'] = df['Sales'] - df['Cost'] 
+    
+    df = df.dropna(subset=['Lead Time', 'Gross Profit'])
     return df
 
 df = load_data()
 
-# Charts
-st.subheader("📊 Shipping Performance Analysis")
+# 2. KPI Metrics (Top par dikhane ke liye)
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Sales", f"${df['Sales'].sum():,.0f}")
+col2.metric("Avg Lead Time", f"{df['Lead Time'].mean():.1f} days")
+col3.metric("Total Profit", f"${df['Gross Profit'].sum():,.0f}")
 
-# Sahi calculation ke liye groupby
-chart_data = df.groupby('Ship Mode')['Lead Time'].mean().reset_index()
+st.markdown("---")
 
-fig1 = px.bar(chart_data, x='Ship Mode', y='Lead Time', 
-             title="Avg Lead Time by Shipping Mode",
-             color='Ship Mode', template="plotly_dark")
+# 3. Charts & Visualization
+st.subheader("📊 Logistics & Financial Performance")
 
+# Chart 1: Lead Time by State
+fig1 = px.bar(df.groupby('State/Province')['Lead Time'].mean().reset_index(), 
+             x='State/Province', y='Lead Time', title="Avg Lead Time by State")
 st.plotly_chart(fig1, use_container_width=True)
+
+# Chart 2: Profit by State
+fig2 = px.bar(df.groupby('State/Province')['Gross Profit'].sum().reset_index(), 
+             x='State/Province', y='Gross Profit', title="Total Profit by State", color='Gross Profit')
+st.plotly_chart(fig2, use_container_width=True)
