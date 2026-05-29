@@ -105,4 +105,58 @@ fig_map = px.choropleth(
 
 st.plotly_chart(fig_map, use_container_width=True)
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 
+# 1. Page Configuration
+st.set_page_config(page_title="Nassau Candy Analysis", layout="wide")
+st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
+
+# 2. Data Loading & Cleaning
+@st.cache_data
+def load_data():
+    # File path aapke folder structure ke hisaab se hona chahiye
+    df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
+    df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
+    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
+    df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
+    df['Gross Profit'] = df['Sales'] - df['Cost']
+    return df.dropna(subset=['Lead Time', 'Gross Profit'])
+
+df = load_data()
+
+# 3. Sidebar (User Control Module)
+st.sidebar.header("Filter Data")
+selected_region = st.sidebar.multiselect("Select State/Province", options=df['State/Province'].unique(), default=df['State/Province'].unique())
+selected_mode = st.sidebar.multiselect("Select Shipping Mode", options=df['Ship Mode'].unique(), default=df['Ship Mode'].unique())
+
+# Filter data
+df_filtered = df[(df['State/Province'].isin(selected_region)) & (df['Ship Mode'].isin(selected_mode))]
+
+# 4. Overview Module
+st.subheader("📊 Executive Overview")
+kpi1, kpi2, kpi3 = st.columns(3)
+kpi1.metric("Total Sales", f"${df_filtered['Sales'].sum():,.0f}")
+kpi2.metric("Avg Lead Time", f"{df_filtered['Lead Time'].mean():.1f} days")
+kpi3.metric("Total Profit", f"${df_filtered['Gross Profit'].sum():,.0f}")
+
+# 5. Geo Visuals (Map Heatmap)
+st.subheader("🗺️ Geographic Performance: Profit Heatmap")
+df_map = df_filtered.groupby('State/Province')['Gross Profit'].sum().reset_index()
+
+fig_map = px.choropleth(
+    df_map, 
+    locations='State/Province', 
+    locationmode="USA-states", 
+    color='Gross Profit', 
+    scope="usa", 
+    color_continuous_scale="Viridis",
+    title="Total Profit by State"
+)
+st.plotly_chart(fig_map, use_container_width=True)
+
+# 6. Comparison Tools
+st.subheader("⚖️ Comparison Tool: Ship Mode Performance")
+mode_comp = df_filtered.groupby('Ship Mode')[['Lead Time', 'Gross Profit']].mean()
+st.table(mode_comp)
