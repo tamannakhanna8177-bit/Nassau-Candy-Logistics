@@ -22,7 +22,7 @@ Visualization Design: Integrated Plotly to create responsive and interactive cha
 Deployment: Linked the GitHub repository to Streamlit Cloud to enable continuous deployment and public access via a live URL.
 6. Project Links
 Live Dashboard: [https://3zjvr6tasnrmtxbs5wbud5.streamlit.app/]
-Source Code: [https://github.com/tamannakhanna8177-bit/Nassau-Candy-Logistics/new/main]
+Source Code: [https://github.com/tamannakhanna8177-bit/Nassau-Candy-Logistics]
 7. Learning Outcomes
 This project provided hands-on experience in the complete data science lifecycle:
 Data Engineering: Learning how to clean and structure raw data.
