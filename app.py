@@ -341,3 +341,32 @@ st.plotly_chart(fig)
 
 # 4. Optimization Suggestion
 st.info("💡 Suggestion: Focus on reducing cost for products in the bottom-left of the scatter plot with high cost but low sales.")
+
+# Isse apne app.py mein niche ki taraf add karein
+
+st.subheader("🔍 Categorical Deep Dive & Product Efficiency")
+
+# 1. Product Specific Efficiency
+# Efficiency = Sales per unit of Lead Time (Higher is better)
+df_f['Product Efficiency'] = df_f['Sales'] / (df_f['Lead Time'] + 1) # +1 to avoid division by zero
+
+st.write("Top 5 Most Efficient Products:")
+top_products = df_f.groupby('Product Name')['Product Efficiency'].mean().sort_values(ascending=False).head(5)
+st.bar_chart(top_products)
+
+# 2. Categorical Analysis
+# Agar aapke data mein 'Category' column hai, toh ye line kaam karegi
+if 'Category' in df_f.columns:
+    st.subheader("Category Performance")
+    cat_data = df_f.groupby('Category')[['Sales', 'Gross Profit']].sum()
+    st.dataframe(cat_data)
+else:
+    st.warning("Data mein 'Category' column nahi mila. 'Product Name' ka distribution dekh rahe hain:")
+    st.bar_chart(df_f.groupby('Product Name')['Sales'].sum().sort_values(ascending=False).head(10))
+
+# 3. Efficiency Benchmarking (Scatter plot)
+st.subheader("Efficiency Benchmarking: Sales vs Lead Time")
+import plotly.express as px
+fig = px.scatter(df_f, x='Lead Time', y='Sales', color='Product Name', 
+                 title="Product Efficiency: High Sales, Low Lead Time is Target")
+st.plotly_chart(fig, use_container_width=True)
