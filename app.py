@@ -86,3 +86,21 @@ st.table(mode_comp)
 # 4. User Controls (Already in Sidebar)
 st.sidebar.subheader("Advanced Settings")
 # Yahan aap naye controls (jaise Date Range) add kar sakti hain
+# Geo Visuals: Heatmap by State
+st.subheader("🗺️ Geographic Performance: Profit Heatmap")
+
+# Grouping data by state to get total profit per state
+df_map = df_filtered.groupby('State/Province')['Gross Profit'].sum().reset_index()
+
+# Choropleth map create karna
+fig_map = px.choropleth(
+    df_map, 
+    locations='State/Province', 
+    locationmode="USA-states", 
+    color='Gross Profit', # Isse colors change honge
+    scope="usa", 
+    color_continuous_scale="Viridis", # Aap 'Blues', 'Reds' ya 'Viridis' try kar sakte hain
+    title="Total Profit by State"
+)
+
+st.plotly_chart(fig_map, use_container_width=True)
