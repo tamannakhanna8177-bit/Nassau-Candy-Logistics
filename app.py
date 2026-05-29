@@ -326,6 +326,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from sklearn.linear_model import LinearRegression
+from sklearn.cluster import KMeans
 import numpy as np
 
 # 1. Page Config
@@ -338,13 +339,13 @@ def load_data():
     df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
     df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
     df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
-    # Column names match ho rahe hain dataset se
     df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
+    df['Gross Profit'] = df['Sales'] - df['Cost']
     return df.dropna(subset=['Lead Time', 'Gross Profit', 'Order Date'])
 
 df = load_data()
 
-# 3. Sidebar Filter
+# 3. Sidebar
 st.sidebar.header("Filter Controls")
 states = st.sidebar.multiselect("Select State", options=df['State/Province'].unique(), default=df['State/Province'].unique())
 df_f = df[df['State/Province'].isin(states)]
@@ -355,37 +356,20 @@ col1.metric("Total Sales", f"${df_f['Sales'].sum():,.0f}")
 col2.metric("Avg Lead Time", f"{df_f['Lead Time'].mean():.1f} days")
 col3.metric("Total Profit", f"${df_f['Gross Profit'].sum():,.0f}")
 
-# 5. Geo Visuals & Correlation
-st.subheader("🗺️ Geographic Performance & Correlation Analysis")
+# 5. Geo Analysis & Clustering
+st.subheader("🗺️ Geographic Performance & AI Clustering")
 c1, c2 = st.columns(2)
+
 with c1:
     df_map = df_f.groupby('State/Province')['Gross Profit'].sum().reset_index()
     fig = px.choropleth(df_map, locations='State/Province', locationmode="USA-states", color='Gross Profit', scope="usa")
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
+
 with c2:
-    fig_geo = px.scatter(df_f.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().reset_index(),
-                         x='Lead Time', y='Gross Profit', size='Gross Profit', color='State/Province')
-    st.plotly_chart(fig_geo, width='stretch')
-
-# 6. Predictive Analytics
-st.subheader("🔮 Predictive Analytics")
-df['Days_Since_Start'] = (df['Order Date'] - df['Order Date'].min()).dt.days
-model = LinearRegression().fit(df[['Days_Since_Start']], df['Lead Time'])
-prediction = model.predict(np.array([[df['Days_Since_Start'].max() + 30]]))
-st.info(f"🚀 Predicted Lead Time for next 30 days: {prediction[0]:.1f} days")
-
-# 7. Product Efficiency Deep Dive (FIXED)
-st.subheader("📦 Product Specific Efficiency")
-# 'Category' ki jagah 'Product Name' use kiya hai
-selected_product = st.selectbox("Select Product to Analyze", options=df_f['Product Name'].unique())
-df_prod = df_f[df_f['Product Name'] == selected_product]
-
-col_c1, col_c2 = st.columns(2)
-with col_c1:
-    st.write(f"**Total Profit for {selected_product}**")
-    st.metric("Profit", f"${df_prod['Gross Profit'].sum():,.0f}")
-with col_c2:
-    st.write(f"**Efficiency Profile**")
-    st.metric("Avg Lead Time", f"{df_prod['Lead Time'].mean():.1f} days")
-
-st.success("✅ Dashboard fully updated with available dataset columns!")
+    # K-Means Clustering logic
+    df_cluster = df_f.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().dropna()
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init='auto')
+    df_cluster['Cluster'] = kmeans.fit_predict(df_cluster[['Lead Time', 'Gross Profit']])
+    
+    fig_cluster = px.scatter(df_cluster, x='Lead Time', y='Gross Profit', color='Cluster', 
+                             size='Gross Profit', hover_name=df_cluster.
