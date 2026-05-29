@@ -1,23 +1,22 @@
 import streamlit as st
 import pandas as pd
 
+# Page config
+st.set_page_config(page_title="Nassau Candy Analysis", layout="wide")
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
+    
+    # Date columns ko sahi format mein convert karein
+    df['Order Date'] = pd.to_datetime(df['Order Date'], dayfirst=True)
+    df['Ship Date'] = pd.to_datetime(df['Ship Date'], dayfirst=True)
+    
+    df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
+    return df
+
+# Main logic
 st.title("🏭 Nassau Candy Logistics Dashboard")
+df = load_data()
 
-# 1. Data load hamesha sabse upar
-df = pd.read_csv('data/nassau_candy_data.csv') 
-
-# 2. Sidebar filter
-st.sidebar.header("Filter Controls")
-states = st.sidebar.multiselect("Select State", df['State/Province'].unique(), default=df['State/Province'].unique())
-
-# 3. Filtered data ko try block ke bahar define karein taaki kahin bhi use ho sake
-df_f = df[df['State/Province'].isin(states)]
-
-# 4. Ab display ka kaam karein
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Sales", f"${df_f['Sales'].sum():,.0f}")
-col2.metric("Avg Lead Time", f"{df_f['Lead Time'].mean():.1f} days")
-col3.metric("Total Profit", f"${df_f['Gross Profit'].sum():,.0f}")
-
-st.subheader("Gross Profit by State")
-st.bar_chart(df_f.groupby('State/Province')['Gross Profit'].sum())
+st.write("### Data Preview", df.head())
