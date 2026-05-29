@@ -43,3 +43,23 @@ df_filtered['Status'] = df_filtered['Lead Time'].apply(lambda x: 'On-Time' if x 
 status_counts = df_filtered['Status'].value_counts()
 fig_pie = px.pie(values=status_counts.values, names=status_counts.index)
 st.plotly_chart(fig_pie)
+
+# --- ROUTE AGGREGATION SECTION ---
+st.subheader("🚚 Route Aggregation Analysis")
+
+# Data ko aggregate karna (State aur Ship Mode ke basis par)
+route_data = df_filtered.groupby(['State/Province', 'Ship Mode']).agg({
+    'Lead Time': 'mean',
+    'Gross Profit': 'sum',
+    'Order ID': 'count'
+}).rename(columns={'Order ID': 'Total Orders'}).reset_index()
+
+# Table format mein dikhana (Taaki user har route ki detail dekh sake)
+st.dataframe(route_data.sort_values(by='Lead Time', ascending=False), use_container_width=True)
+
+# Plotting: Route Efficiency chart
+fig_route = px.scatter(route_data, x='Lead Time', y='Gross Profit', 
+                       size='Total Orders', color='Ship Mode',
+                       hover_name='State/Province', 
+                       title="Route Efficiency: Profit vs Lead Time (Size = Order Volume)")
+st.plotly_chart(fig_route, use_container_width=True)
