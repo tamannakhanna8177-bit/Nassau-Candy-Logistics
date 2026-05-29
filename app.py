@@ -322,18 +322,74 @@ reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
 projected = df_f['Gross Profit'].sum() + (df_f['Cost'].sum() * (reduction / 100))
 st.metric("Projected Profit", f"${projected:,.0f}")
 
-# 7. Product Efficiency Deep Dive (FIXED)
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
+# 1. Page Config
+st.set_page_config(page_title="Nassau Candy Logistics", layout="wide")
+st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
+
+# 2. Data Loading
+@st.cache_data
+def load_data():
+    df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
+    df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
+    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
+    df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
+    df['Gross Profit'] = df['Sales'] - df['Cost']
+    
+    # Yahan columns check karein
+    st.sidebar.write("Available Columns:", df.columns.tolist()) 
+    return df.dropna(subset=['Lead Time', 'Gross Profit', 'Order Date'])
+
+df = load_data()
+
+# 3. Sidebar Filter
+st.sidebar.header("Filter Controls")
+states = st.sidebar.multiselect("Select State", options=df['State/Province'].unique(), default=df['State/Province'].unique())
+df_f = df[df['State/Province'].isin(states)]
+
+# 4. Overview
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Sales", f"${df_f['Sales'].sum():,.0f}")
+col2.metric("Avg Lead Time", f"{df_f['Lead Time'].mean():.1f} days")
+col3.metric("Total Profit", f"${df_f['Gross Profit'].sum():,.0f}")
+
+# 5. Geo Visuals & Correlation
+st.subheader("🗺️ Geographic Performance & Correlation Analysis")
+c1, c2 = st.columns(2)
+with c1:
+    df_map = df_f.groupby('State/Province')['Gross Profit'].sum().reset_index()
+    fig = px.choropleth(df_map, locations='State/Province', locationmode="USA-states", color='Gross Profit', scope="usa")
+    st.plotly_chart(fig, width='stretch')
+with c2:
+    fig_geo = px.scatter(df_f.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().reset_index(),
+                         x='Lead Time', y='Gross Profit', size='Gross Profit', color='State/Province')
+    st.plotly_chart(fig_geo, width='stretch')
+
+# 6. Predictive & Alerts
+st.subheader("🔮 Predictive Analytics & Smart Alerts")
+df['Days_Since_Start'] = (df['Order Date'] - df['Order Date'].min()).dt.days
+model = LinearRegression().fit(df[['Days_Since_Start']], df['Lead Time'])
+prediction = model.predict(np.array([[df['Days_Since_Start'].max() + 30]]))
+st.info(f"🚀 Predicted Lead Time: {prediction[0]:.1f} days")
+
+# 7. Financial Simulation
+st.subheader("💰 Financial Impact: What-If Simulation")
+reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
+projected = df_f['Gross Profit'].sum() + (df_f['Cost'].sum() * (reduction / 100))
+st.metric("Projected Profit", f"${projected:,.0f}")
+
+# 8. Product Deep Dive (ERROR FIX)
 st.subheader("📦 Product Specific Efficiency")
-# 'Category' ki jagah 'Product Name' use kiya hai
-selected_product = st.selectbox("Select Product to Analyze", options=df_f['Product Name'].unique())
-df_prod = df_f[df_f['Product Name'] == selected_product]
-
-col_c1, col_c2 = st.columns(2)
-with col_c1:
-    st.write(f"*Total Profit for {selected_product}*")
-    st.metric("Profit", f"${df_prod['Gross Profit'].sum():,.0f}")
-with col_c2:
-    st.write(f"*Efficiency Profile*")
-    st.metric("Avg Lead Time", f"{df_prod['Lead Time'].mean():.1f} days")
-
-st.success("✅ Dashboard fully updated with available dataset columns!"
+# Yahan check karein ki column ka naam kya hai (e.g., 'Product Name' ya 'Sub-Category')
+# Agar 'Category' error de, toh 'Product Name' ya kisi aur column ka naam yahan likhein
+col_name = 'Sub-Category' # <<-- Yahan change karein agar error aaye
+if col_name in df.columns:
+    cat = st.selectbox("Select Product", options=df[col_name].unique())
+    st.bar_chart(df[df[col_name] == cat].groupby('Product Name')['Gross Profit'].sum().head(5))
+else:
+    st.error(f"Column '{col_name}' not found. Check sidebar for available columns!")
