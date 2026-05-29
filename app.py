@@ -41,3 +41,13 @@ discount = st.slider("Apply Discount (%)", 0, 20, 5)
 st.write(f"Projected Profit after {discount}% discount: ${88770.66 * (1 - discount/100):.2f}")
 
 st.sidebar.info("Dashboard v2.0 - Optimized for Logistics")
+
+st.subheader("Route Aggregation & Efficiency")
+
+route_data = df_f.groupby('Route')['Gross Profit'].sum().reset_index()
+st.bar_chart(route_data.set_index('Route'))
+
+
+st.write("Efficiency Benchmarking: Comparing actual vs target lead time")
+df_f['Efficiency'] = df_f['Lead Time'] / df_f['Shipping Load Time']
+st.line_chart(df_f.groupby('Route')['Efficiency'].mean())
