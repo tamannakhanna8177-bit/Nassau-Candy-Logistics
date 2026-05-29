@@ -42,9 +42,19 @@ st.write(f"Projected Profit after {discount}% discount: ${88770.66 * (1 - discou
 
 st.sidebar.info("Dashboard v2.0 - Optimized for Logistics")
 
-df_f = df[df['State/Province'].isin(states)] 
 
-
-st.subheader("Route Aggregation & Efficiency")
+st.subheader("Route Aggregation (By State)")
 route_data = df_f.groupby('State/Province')['Gross Profit'].sum().reset_index()
 st.bar_chart(route_data.set_index('State/Province'))
+
+
+st.subheader("Efficiency Benchmarking")
+
+efficiency = df_f.groupby('State/Province')['Lead Time'].mean().sort_values()
+st.line_chart(efficiency)
+
+
+st.subheader("Bottleneck Detection")
+bottleneck = df_f[df_f['Lead Time'] > df_f['Lead Time'].mean()]
+st.write("States with higher than average lead time:")
+st.dataframe(bottleneck[['State/Province', 'Lead Time']].head())
