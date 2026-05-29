@@ -4,16 +4,13 @@ import plotly.express as px
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
-# ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Nassau Candy Analysis", layout="wide")
 st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
 
-# ---------------- LOAD DATA ----------------
 @st.cache_data
 def load_data():
     df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
 
-    # Date conversion
     df['Order Date'] = pd.to_datetime(
         df['Order Date'],
         format='%d-%m-%Y',
@@ -26,11 +23,10 @@ def load_data():
         errors='coerce'
     )
 
-    # New calculated columns
     df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
     df['Gross Profit'] = df['Sales'] - df['Cost']
 
-    # Remove null values
+    
     df = df.dropna(subset=['Lead Time', 'Gross Profit', 'Order Date'])
 
     return df
@@ -38,7 +34,7 @@ def load_data():
 
 df = load_data()
 
-# ---------------- SIDEBAR FILTERS ----------------
+
 st.sidebar.header("📌 Filter Data")
 
 selected_region = st.sidebar.multiselect(
@@ -53,20 +49,20 @@ selected_mode = st.sidebar.multiselect(
     default=df['Ship Mode'].unique()
 )
 
-# Filtered Data
+
 df_filtered = df[
     (df['State/Province'].isin(selected_region)) &
     (df['Ship Mode'].isin(selected_mode))
 ]
 
-# ---------------- STATUS COLUMN ----------------
+
 df_filtered = df_filtered.copy()
 
 df_filtered['Status'] = df_filtered['Lead Time'].apply(
     lambda x: 'On-Time' if x <= 5 else 'Delayed'
 )
 
-# ---------------- EXECUTIVE OVERVIEW ----------------
+
 st.subheader("📊 Executive Overview")
 
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -93,7 +89,7 @@ kpi4.metric(
 
 st.markdown("---")
 
-# ---------------- GEOGRAPHIC PERFORMANCE ----------------
+
 st.subheader("🗺️ Geographic Performance: Profit Heatmap")
 
 df_map = df_filtered.groupby(
@@ -112,7 +108,6 @@ fig_map = px.choropleth(
 
 st.plotly_chart(fig_map, use_container_width=True)
 
-# ---------------- BOTTLENECK DETECTION ----------------
 st.subheader("⚠️ Bottleneck Detection")
 
 bottlenecks = (
@@ -124,7 +119,7 @@ bottlenecks = (
 
 st.bar_chart(bottlenecks)
 
-# ---------------- SHIPPING EFFICIENCY ----------------
+
 st.subheader("✅ Shipping Efficiency Benchmark")
 
 status_counts = df_filtered['Status'].value_counts()
@@ -137,7 +132,7 @@ fig_pie = px.pie(
 
 st.plotly_chart(fig_pie, use_container_width=True)
 
-# ---------------- SHIP MODE COMPARISON ----------------
+
 st.subheader("⚖️ Comparison Tool: Ship Mode Performance")
 
 mode_comp = df_filtered.groupby('Ship Mode')[
@@ -146,7 +141,7 @@ mode_comp = df_filtered.groupby('Ship Mode')[
 
 st.table(mode_comp)
 
-# ---------------- ROUTE AGGREGATION ----------------
+
 st.subheader("🚚 Route Aggregation Analysis")
 
 route_data = df_filtered.groupby(
@@ -159,13 +154,13 @@ route_data = df_filtered.groupby(
     'Order ID': 'Total Orders'
 }).reset_index()
 
-# Route Table
+
 st.dataframe(
     route_data.sort_values(by='Lead Time', ascending=False),
     use_container_width=True
 )
 
-# Scatter Plot
+
 fig_route = px.scatter(
     route_data,
     x='Lead Time',
@@ -178,10 +173,10 @@ fig_route = px.scatter(
 
 st.plotly_chart(fig_route, use_container_width=True)
 
-# ---------------- PREDICTIVE ANALYTICS ----------------
+
 st.subheader("🔮 Predictive Analytics: Lead Time Forecast")
 
-# Convert date into numeric value
+
 df['Days_Since_Start'] = (
     df['Order Date'] - df['Order Date'].min()
 ).dt.days
@@ -189,11 +184,11 @@ df['Days_Since_Start'] = (
 X = df[['Days_Since_Start']]
 y = df['Lead Time']
 
-# Train Model
+
 model = LinearRegression()
 model.fit(X, y)
 
-# Future prediction
+
 last_day = df['Days_Since_Start'].max()
 
 future_days = np.array([[last_day + 30]])
@@ -205,19 +200,19 @@ st.info(
     f"{prediction[0]:.1f} days"
 )
 
-# ---------------- ADVANCED SETTINGS ----------------
+
 st.sidebar.subheader("⚙️ Advanced Settings")
 
 st.sidebar.write(
     "You can add more filters here like Date Range, Product Category, etc."
 )
 
-# Threshold Alert Logic
+
 st.subheader("🔔 Smart Alerts: Performance Monitor")
 
 avg_lead_time = df_filtered['Lead Time'].mean()
 
-if avg_lead_time > 1300: # Aap apni threshold value yahan set karein
+if avg_lead_time > 1300: 
     st.error(f"⚠️ ALERT: High Lead Time detected ({avg_lead_time:.1f} days)! Check North region routes.")
 else:
     st.success("✅ Logistics performance is within acceptable thresholds.")
@@ -233,22 +228,17 @@ def send_alert(message_body):
     msg['From'] = 'your-email@gmail.com'
     msg['To'] = 'manager@example.com'
     
-    # Iske liye aapko 'App Password' ki zaroorat padegi
-    # server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    # server.login('your-email@gmail.com', 'your-app-password')
-    # server.send_message(msg)
-    # server.quit()
+    
     st.warning("Simulated Email Sent: " + message_body)
 
 if avg_lead_time > 1300:
     if st.button("Send Manager Alert"):
         send_alert(f"Critical Lead Time: {avg_lead_time:.1f} days")
 
-# --- ADVANCE GEOSPATIAL ANALYSIS ---
+
 st.subheader("📍 Geospatial Analysis: Distance vs. Lead Time Correlation")
 
-# Scatter plot: Har state ka avg lead time vs profit
-# Agar aapke paas 'Distance' column nahi hai, toh hum 'Lead Time' ko 'State' ke hisaab se analyze karenge
+
 fig_geo = px.scatter(
     df_filtered.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().reset_index(),
     x='Lead Time', 
@@ -267,11 +257,10 @@ import plotly.express as px
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
-# 1. Page Config
 st.set_page_config(page_title="Nassau Candy Logistics", layout="wide")
 st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
 
-# 2. Data Loading
+
 @st.cache_data
 def load_data():
     df = pd.read_csv('data/Nassau Candy Distributor (1).csv')
@@ -280,24 +269,24 @@ def load_data():
     df['Lead Time'] = (df['Ship Date'] - df['Order Date']).dt.days
     df['Gross Profit'] = df['Sales'] - df['Cost']
     
-    # Yahan columns check karein
+    
     st.sidebar.write("Available Columns:", df.columns.tolist()) 
     return df.dropna(subset=['Lead Time', 'Gross Profit', 'Order Date'])
 
 df = load_data()
 
-# 3. Sidebar Filter
+
 st.sidebar.header("Filter Controls")
 states = st.sidebar.multiselect("Select State", options=df['State/Province'].unique(), default=df['State/Province'].unique())
 df_f = df[df['State/Province'].isin(states)]
 
-# 4. Overview
+
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Sales", f"${df_f['Sales'].sum():,.0f}")
 col2.metric("Avg Lead Time", f"{df_f['Lead Time'].mean():.1f} days")
 col3.metric("Total Profit", f"${df_f['Gross Profit'].sum():,.0f}")
 
-# 5. Geo Visuals & Correlation
+
 st.subheader("🗺️ Geographic Performance & Correlation Analysis")
 c1, c2 = st.columns(2)
 with c1:
@@ -309,53 +298,50 @@ with c2:
                          x='Lead Time', y='Gross Profit', size='Gross Profit', color='State/Province')
     st.plotly_chart(fig_geo, width='stretch')
 
-# 6. Predictive & Alerts
+
 st.subheader("🔮 Predictive Analytics & Smart Alerts")
 df['Days_Since_Start'] = (df['Order Date'] - df['Order Date'].min()).dt.days
 model = LinearRegression().fit(df[['Days_Since_Start']], df['Lead Time'])
 prediction = model.predict(np.array([[df['Days_Since_Start'].max() + 30]]))
 st.info(f"🚀 Predicted Lead Time: {prediction[0]:.1f} days")
 
-# 7. Financial Simulation
+
 st.subheader("💰 Financial Impact: What-If Simulation")
 reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
 projected = df_f['Gross Profit'].sum() + (df_f['Cost'].sum() * (reduction / 100))
 st.metric("Projected Profit", f"${projected:,.0f}")
 
-# Is code ko apne app.py mein wahan add karein jahan aapne metrics define kiye hain
+
 st.subheader("💰 Cost Optimization Analysis")
 
-# 1. Profit Margin Calculation
+
 df_f['Profit Margin'] = ((df_f['Sales'] - df_f['Cost']) / df_f['Sales']) * 100
 
-# 2. High Cost Bottlenecks (Cost optimization ke liye)
+
 st.write("Products with lowest profit margins (High Cost Areas):")
 low_margin_products = df_f.sort_values(by='Profit Margin').head(5)
 st.dataframe(low_margin_products[['Product Name', 'Sales', 'Cost', 'Profit Margin']])
 
-# 3. Cost vs Profit Chart
+
 st.subheader("Sales vs Cost Analysis")
 fig = px.scatter(df_f, x='Cost', y='Sales', color='State/Province', 
                  title="Relationship between Sales and Cost per Region")
 st.plotly_chart(fig)
 
-# 4. Optimization Suggestion
+
 st.info("💡 Suggestion: Focus on reducing cost for products in the bottom-left of the scatter plot with high cost but low sales.")
 
-# Isse apne app.py mein niche ki taraf add karein
+
 
 st.subheader("🔍 Categorical Deep Dive & Product Efficiency")
 
-# 1. Product Specific Efficiency
-# Efficiency = Sales per unit of Lead Time (Higher is better)
-df_f['Product Efficiency'] = df_f['Sales'] / (df_f['Lead Time'] + 1) # +1 to avoid division by zero
+df_f['Product Efficiency'] = df_f['Sales'] / (df_f['Lead Time'] + 1) 
 
 st.write("Top 5 Most Efficient Products:")
 top_products = df_f.groupby('Product Name')['Product Efficiency'].mean().sort_values(ascending=False).head(5)
 st.bar_chart(top_products)
 
-# 2. Categorical Analysis
-# Agar aapke data mein 'Category' column hai, toh ye line kaam karegi
+
 if 'Category' in df_f.columns:
     st.subheader("Category Performance")
     cat_data = df_f.groupby('Category')[['Sales', 'Gross Profit']].sum()
@@ -364,7 +350,7 @@ else:
     st.warning("Data mein 'Category' column nahi mila. 'Product Name' ka distribution dekh rahe hain:")
     st.bar_chart(df_f.groupby('Product Name')['Sales'].sum().sort_values(ascending=False).head(10))
 
-# 3. Efficiency Benchmarking (Scatter plot)
+
 st.subheader("Efficiency Benchmarking: Sales vs Lead Time")
 import plotly.express as px
 fig = px.scatter(df_f, x='Lead Time', y='Sales', color='Product Name', 
@@ -376,16 +362,12 @@ import plotly.express as px
 
 st.subheader("🤖 K-Means Clustering: Regional Segmentation")
 
-# 1. Clustering ke liye data prepare karein
-# Sirf numeric columns lein jo clustering ke liye zaroori hain
 cluster_data = df_f.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().dropna()
 
-# 2. K-Means Model
 n_clusters = 3
 kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
 cluster_data['Cluster'] = kmeans.fit_predict(cluster_data[['Lead Time', 'Gross Profit']])
 
-# 3. Visualization
 fig = px.scatter(cluster_data, x='Lead Time', y='Gross Profit', 
                  color='Cluster', 
                  text=cluster_data.index,
@@ -393,7 +375,7 @@ fig = px.scatter(cluster_data, x='Lead Time', y='Gross Profit',
 fig.update_traces(textposition='top center')
 st.plotly_chart(fig, use_container_width=True)
 
-# 4. Cluster Description
+
 st.write("Cluster Interpretation:")
 st.write("Cluster 0: High Profit, Low Lead Time (Efficient)")
 st.write("Cluster 1: Moderate Performance")
@@ -403,23 +385,22 @@ from prophet import Prophet
 
 st.subheader("📈 Meta Prophet: Advanced Sales Forecasting")
 
-# 1. Data Prep for Prophet (Prophet ko 'ds' aur 'y' columns chahiye)
+
 df_prophet = df_f.groupby('Order Date')['Sales'].sum().reset_index()
 df_prophet.rename(columns={'Order Date': 'ds', 'Sales': 'y'}, inplace=True)
 
-# 2. Model Training
+
 m = Prophet(yearly_seasonality=True, daily_seasonality=False)
 m.fit(df_prophet)
 
-# 3. Future Forecasting (Agle 30 dino ke liye)
 future = m.make_future_dataframe(periods=30)
 forecast = m.predict(future)
 
-# 4. Visualization
+
 fig1 = m.plot(forecast)
 st.pyplot(fig1)
 
-# 5. Trend Components (Seasonality check)
+
 st.subheader("Forecast Components")
 fig2 = m.plot_components(forecast)
 st.pyplot(fig2)
