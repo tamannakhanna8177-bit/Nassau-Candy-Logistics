@@ -28,3 +28,6 @@ st.plotly_chart(fig1, use_container_width=True)
 # Chart 2: Ship Mode Distribution
 fig2 = px.pie(df, names='Ship Mode', title="Most Used Shipping Modes")
 st.plotly_chart(fig2, use_container_width=True)
+
+# Check karein ki data mein koi negative value toh nahi hai
+df = df[df['Lead Time'] >= 0]
