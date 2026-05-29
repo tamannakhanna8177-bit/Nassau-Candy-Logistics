@@ -156,7 +156,24 @@ fig_map = px.choropleth(
 )
 st.plotly_chart(fig_map, use_container_width=True)
 
-# 6. Comparison Tools
-st.subheader("⚖️ Comparison Tool: Ship Mode Performance")
-mode_comp = df_filtered.groupby('Ship Mode')[['Lead Time', 'Gross Profit']].mean()
-st.table(mode_comp)
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
+# Prediction Module
+st.subheader("🔮 Predictive Analytics: Lead Time Forecast")
+
+# Data preparation
+df['Days_Since_Start'] = (df['Order Date'] - df['Order Date'].min()).dt.days
+X = df[['Days_Since_Start']]
+y = df['Lead Time']
+
+# Model Training
+model = LinearRegression()
+model.fit(X, y)
+
+# Next 30 days ki prediction
+last_day = df['Days_Since_Start'].max()
+future_days = np.array([[last_day + 30]])
+prediction = model.predict(future_days)
+
+st.info(f"🚀 Predicted Average Lead Time for next 30 days: {prediction[0]:.1f} days")
