@@ -437,31 +437,3 @@ import plotly.express as px
 st.set_page_config(layout="wide")
 st.title("🏭 Nassau Candy Advanced Logistics Dashboard")
 
-# 1. Path Fix: Apni file ka actual naam aur path check karein
-# Agar file root folder mein hai, toh sirf 'Nassau Candy Distributor (1).csv' likhein
-try:
-    df = pd.read_csv('Nassau Candy Distributor (1).csv') 
-    
-    # 2. Datetime conversion (Bahut zaruri)
-    df['Order Date'] = pd.to_datetime(df['Order Date'], errors='coerce')
-    
-    # 3. Sidebar
-    states = st.sidebar.multiselect("Select State", df['State/Province'].unique(), default=df['State/Province'].unique())
-    df_f = df[df['State/Province'].isin(states)].copy()
-
-    # 4. Metrics
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Sales", f"${df_f['Sales'].sum():,.0f}")
-    col2.metric("Avg Lead Time", f"{df_f['Lead Time'].mean():.1f} days")
-    col3.metric("Total Profit", f"${df_f['Gross Profit'].sum():,.0f}")
-
-    # 5. Fix for Monthly Trend (Datetime check karke)
-    st.subheader("Monthly Sales Trend")
-    if 'Order Date' in df_f.columns:
-        # Datetime index set karein
-        df_monthly = df_f.set_index('Order Date').resample('ME')['Sales'].sum().reset_index()
-        st.area_chart(df_monthly.set_index('Order Date'))
-    
-except Exception as e:
-    st.error(f"Data Load Error: {e}")
-    st.write("Check karein ki CSV file ka naam sahi hai aur wo GitHub repo mein hai.")
