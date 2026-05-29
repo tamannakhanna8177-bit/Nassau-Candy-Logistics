@@ -261,20 +261,13 @@ fig_geo = px.scatter(
 
 st.plotly_chart(fig_geo, width='stretch')
 
-# --- FINANCIAL IMPACT SIMULATION (WHAT-IF) ---
-st.subheader("💰 Financial Impact: What-If Simulation")
+st.subheader("💡 Cost Optimization Recommendations")
 
-col_a, col_b = st.columns(2)
+# Logic: Kaunsa shipping mode sabse sasta aur efficient hai
+opt_df = df_f.groupby('Ship Mode')[['Gross Profit', 'Lead Time']].mean()
+best_mode = opt_df[opt_df['Gross Profit'] == opt_df['Gross Profit'].max()].index[0]
 
-with col_a:
-    cost_reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
-    
-with col_b:
-    # Logic: Agar shipping cost 5% kam hui, toh profit kitna badhega?
-    current_profit = df_f['Gross Profit'].sum()
-    projected_profit = current_profit + (df_f['Cost'].sum() * (cost_reduction / 100))
-    
-    st.metric("Current Profit", f"${current_profit:,.0f}")
-    st.metric("Projected Profit", f"${projected_profit:,.0f}", delta=f"{projected_profit - current_profit:,.0f}")
+st.success(f"✅ Recommendation: Based on current data, **{best_mode}** is your most cost-effective Shipping Mode.")
 
-st.info("💡 Insight: A small reduction in shipping costs can significantly boost your bottom-line profit.")
+# Analysis: Jo modes mehange hain unhe highlight karein
+st.warning("⚠️ Optimization Tip: Consider shifting 'Standard Class' orders to 'Second Class' for routes where lead time difference is less than 2 days.")
