@@ -243,3 +243,20 @@ def send_alert(message_body):
 if avg_lead_time > 1300:
     if st.button("Send Manager Alert"):
         send_alert(f"Critical Lead Time: {avg_lead_time:.1f} days")
+
+# --- ADVANCE GEOSPATIAL ANALYSIS ---
+st.subheader("📍 Geospatial Analysis: Distance vs. Lead Time Correlation")
+
+# Scatter plot: Har state ka avg lead time vs profit
+# Agar aapke paas 'Distance' column nahi hai, toh hum 'Lead Time' ko 'State' ke hisaab se analyze karenge
+fig_geo = px.scatter(
+    df_filtered.groupby('State/Province')[['Lead Time', 'Gross Profit']].mean().reset_index(),
+    x='Lead Time', 
+    y='Gross Profit',
+    size='Gross Profit',
+    color='State/Province',
+    title="Correlation: Lead Time Impact on Profitability by State",
+    hover_name='State/Province'
+)
+
+st.plotly_chart(fig_geo, width='stretch')
