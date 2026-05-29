@@ -322,3 +322,22 @@ reduction = st.slider("Simulate Shipping Cost Reduction (%)", 0, 20, 5)
 projected = df_f['Gross Profit'].sum() + (df_f['Cost'].sum() * (reduction / 100))
 st.metric("Projected Profit", f"${projected:,.0f}")
 
+# Is code ko apne app.py mein wahan add karein jahan aapne metrics define kiye hain
+st.subheader("💰 Cost Optimization Analysis")
+
+# 1. Profit Margin Calculation
+df_f['Profit Margin'] = ((df_f['Sales'] - df_f['Cost']) / df_f['Sales']) * 100
+
+# 2. High Cost Bottlenecks (Cost optimization ke liye)
+st.write("Products with lowest profit margins (High Cost Areas):")
+low_margin_products = df_f.sort_values(by='Profit Margin').head(5)
+st.dataframe(low_margin_products[['Product Name', 'Sales', 'Cost', 'Profit Margin']])
+
+# 3. Cost vs Profit Chart
+st.subheader("Sales vs Cost Analysis")
+fig = px.scatter(df_f, x='Cost', y='Sales', color='State/Province', 
+                 title="Relationship between Sales and Cost per Region")
+st.plotly_chart(fig)
+
+# 4. Optimization Suggestion
+st.info("💡 Suggestion: Focus on reducing cost for products in the bottom-left of the scatter plot with high cost but low sales.")
