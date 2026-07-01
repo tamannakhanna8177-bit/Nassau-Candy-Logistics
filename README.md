@@ -167,7 +167,7 @@ GitHub:
 https://github.com/tamannakhanna8177-bit
 
 LinkedIn:
-(linkedin.com/in/tamanna-khanna-25a275323)
+(https://www.linkedin.com/in/tamanna-khanna-25a275323)
 
 ---
 
